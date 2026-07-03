@@ -1,4 +1,5 @@
 const std = @import("std");
+const sync = @import("sync.zig");
 
 const Io = std.Io;
 const Thread = std.Thread;
@@ -144,9 +145,9 @@ fn Worker(comptime F: anytype) type {
         buffer: []u8,
 
         stopped: bool,
-        mutex: Io.Mutex,
-        read_cond: Io.Condition,
-        write_cond: Io.Condition,
+        mutex: sync.Mutex,
+        read_cond: sync.Condition,
+        write_cond: sync.Condition,
         peer: *Worker(F),
 
         const Self = @This();

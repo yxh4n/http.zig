@@ -285,6 +285,7 @@ pub fn Blocking(comptime S: type, comptime WSH: type) type {
                             // socket, which would panic.
                             return .disown;
                         },
+                        error.ConnectionClosed => return .close,
                         else => {},
                     }
                     requestError(conn, err) catch {};

@@ -32,7 +32,10 @@ pub fn socket(domain: u32, socket_type: u32, protocol: u32) !socket_t {
     if (native_os == .windows) {
         // These flags are not actually part of the Windows API, instead they are converted here for compatibility
         const filtered_sock_type = socket_type & ~@as(u32, NONBLOCK | CLOEXEC);
-        var flags: u32 = windows.ws2_32.WSA_FLAG_OVERLAPPED;
+        // WSA_FLAG_OVERLAPPED causes the kernel to lock/unlock buffer pages on every
+        // synchronous recv() call, causing massive kernel overhead in blocking mode.
+        // Only set it when NONBLOCK is requested (i.e. non-blocking / async I/O).
+        var flags: u32 = if ((socket_type & NONBLOCK) != 0) windows.ws2_32.WSA_FLAG_OVERLAPPED else 0;
         if ((socket_type & CLOEXEC) != 0) flags |= windows.ws2_32.WSA_FLAG_NO_HANDLE_INHERIT;
 
         const rc = try windows.WSASocketW(

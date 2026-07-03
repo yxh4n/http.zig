@@ -752,7 +752,9 @@ pub const State = struct {
         const buf = self.buf;
         const n = try zig016HackRead(source, buf[len..]);
         if (n == 0) {
-            return false;
+            // Peer closed the connection (graceful EOF). Returning `false`
+            // here would loop forever calling recv on a dead socket.
+            return error.ConnectionClosed;
         }
         len = len + n;
         self.len = len;
