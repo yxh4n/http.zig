@@ -171,9 +171,12 @@ pub fn Blocking(comptime S: type, comptime WSH: type) type {
             thread_pool.stop();
         }
 
-        pub fn stop(self: *const Self) void {
-            // The HTTP server will stop when the http.Server shutdown the listening socket.
-            self.websocket.shutdown();
+        pub fn stop(_: *const Self) void {
+            // The HTTP server will stop when the http.Server shuts down the listening
+            // socket, which causes accept() to fail and the listen loop to exit.
+            // websocket.shutdown() is called there (from the worker thread with a valid
+            // IO context). Calling it here from an arbitrary thread (e.g. a Win32 console
+            // ctrl handler) would hang because websocket uses Io.Mutex internally.
         }
 
         // Called in a worker thread. `thread_buf` is a thread-specific buffer that
