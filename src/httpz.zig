@@ -5,6 +5,7 @@ pub const testing = @import("testing.zig");
 pub const websocket = @import("websocket");
 
 const posix = @import("posix.zig");
+const sync = @import("sync.zig");
 pub const routing = @import("router.zig");
 pub const request = @import("request.zig");
 pub const response = @import("response.zig");
@@ -259,9 +260,9 @@ pub fn Server(comptime H: type) type {
         arena: Allocator,
         allocator: Allocator,
         _router: Router(H, ActionArg),
-        _mut: Io.Mutex,
+        _mut: sync.Mutex,
         _workers: []Worker,
-        _cond: Io.Condition,
+        _cond: sync.Condition,
         _listener: ?posix.fd_t,
         _max_request_per_connection: usize,
         _middlewares: []const Middleware(H),

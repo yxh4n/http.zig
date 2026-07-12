@@ -1,10 +1,14 @@
-// Cross-platform synchronization primitives for the httpz thread pool.
+// Cross-platform synchronization primitives for the httpz thread pool and server.
 //
 // On Windows, uses SRWLOCK + CONDITION_VARIABLE instead of Io.Mutex/Io.Condition.
 // Io.Condition on Windows uses NtWaitForAlertByThreadId (via parking_futex), which
 // can be spuriously woken by any code in the process that calls NtAlertThreadByThreadId
-// with our thread's ID. The DeltaV/Hawk runtime does this for its own IPC, causing
-// all httpz worker threads to spin at ~12% CPU after the first DeltaV call.
+// with our thread's ID. Third-party runtimes do this for IPC, causing
+// all httpz worker threads to spin at ~12% CPU after the first call.
+//
+// Additionally, Io.Mutex/Io.Condition require a valid Zig IO context, making them
+// unusable from native OS threads (e.g. Windows console ctrl handler). Using native
+// Win32 primitives here allows server.stop() to be called safely from any thread.
 //
 // SRWLOCK + CONDITION_VARIABLE use RtlWaitOnAddress-based notifications internally
 // and are not affected by NtAlertThreadByThreadId, making them the correct primitive
